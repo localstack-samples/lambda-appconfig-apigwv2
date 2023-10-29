@@ -15,14 +15,33 @@ Checkout the AWS documention here [AWS Lambda AppConfig docs](https://docs.aws.a
 - LocalStack Pro subscription
 - LocalStack Extension for Lambda+AppConfig
 
-## Tooling Requirements
+## Tooling Requirements with GDC
 - Docker or DockerDesktop
-- (more)
+- Install/clone the GDC (Generic Dev Container) [here](https://github.com/devxpod/GDC). We'll refer to this cloned directory as `GDC_HOME`.
 
-## Setup
-### Start LocalStack
-Start LocalStack with Docker Compose.
+## Tooling Requirements without GDC
+- Docker or DockerDesktop
+- Make
+- Python 3.11+
+- NVM (node version manager). Use version 18.
+- ... ...
+
+
+## Setup with GDC
+### Configure LocalStack Auth
+Starting the GDC starts LocalStack and a dev container.
+Add a file to the root of this project called `.env-gdc-local` and put either your LocalStack API key in it
+or your LocalStack Auth Token in it. This file is in `.gitignore` and not tracked.
+Contents to look like this:
 ```shell
-make start-localstack
+export LOCALSTACK_AUTH_TOKEN="<your auth token>"
+# OR
+export LOCALSTACK_API_KEY="<your API key>"
+```
+
+### Start the GDC + LocalStack
+From the root directory of this cloned project.
+```shell
+${GDC_HOME}/run-dev-container.sh
 ```
 
