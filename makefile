@@ -49,7 +49,6 @@ test: venv
 	$(VENV_RUN) && cd auto_tests && AWS_PROFILE=localstack pytest $(ARGS);
 
 test-lambda:
-	# TODO: fix appconfigdata to support resource names as well as resource IDs
 	appId=$$(awslocal appconfig create-application --name app1 | jq -r .Id); \
 		envId=$$(awslocal appconfig create-environment --application-id $$appId --name env1 | jq -r .Id); \
 		profileId=$$(awslocal appconfig create-configuration-profile --application-id $$appId --name profile1 --location-uri "hosted" | jq -r .Id); \
@@ -66,6 +65,4 @@ test-lambda:
 		--handler testlambda.handler --timeout 30 --zip-file fileb:///tmp/testlambda.zip \
 		--layers arn:aws:lambda:us-east-1:027255383542:layer:AWS-AppConfig-Extension-Arm64:46
 
-# Re-create extension cert
-gen-cert:
-	cd localstack-extension-lambda-appconfig/etc && . ./create-certs.sh
+

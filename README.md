@@ -2,7 +2,7 @@
 Lambda+AppConfig integration is easy to use. Amazon provides Lambda Layers to implement the integration! 
 With AppConfig, you can store application configuration such as feature flags.
 This integration makes it simple to retrieve application configuration in your Lambdas.
-Checkout the AWS documention here [AWS Lambda AppConfig docs](https://docs.aws.amazon.com/appconfig/latest/userguide/appconfig-integration-lambda-extensions.html).
+Checkout the AWS documentation here [AWS Lambda AppConfig docs](https://docs.aws.amazon.com/appconfig/latest/userguide/appconfig-integration-lambda-extensions.html).
 
 # Overview
 - IaC in AWS CDK
@@ -45,3 +45,11 @@ From the root directory of this cloned project.
 ${GDC_HOME}/run-dev-container.sh
 ```
 
+### Deploy LocalStack Lambda+AppConfig Extension
+Contact LocalStack for details.
+Example install from your host computer.
+```shell
+export LOCALSTACK_VOLUME_DIR=<path to project>/lambda-appconfig-apigwv2/ls_volume
+localstack extensions -v install file://<path to extension>/localstack-extension-lambda-appconfig-0.1.0.tar.gz
+```
+Restart the GDC
