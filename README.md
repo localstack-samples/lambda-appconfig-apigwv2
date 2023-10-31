@@ -52,4 +52,42 @@ Example install from your host computer.
 export LOCALSTACK_VOLUME_DIR=<path to project>/lambda-appconfig-apigwv2/ls_volume
 localstack extensions -v install file://<path to extension>/localstack-extension-lambda-appconfig-0.1.0.tar.gz
 ```
-Restart the GDC
+Restart the GDC so LocalStack will load the LocalStack Extension on startup.
+
+# Deploy
+## Open the GDC (Generic Dev Container)
+```shell
+docker exec -it lappc-dev-1 bash -l
+```
+
+### Install `cdklocal`. See [LocalStack CDK CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cdk/)
+
+```shell
+npm install -g aws-cdk-local aws-cdk
+```
+
+## Deploy with AWS CDK to LocalStack
+
+### Bootstrap AWS CDK Stacks on LocalStack
+
+You need to do this once.
+
+```shell
+make local-awscdk-bootstrap
+```
+
+### Deploy App Stack on LocalStack
+
+This will deploy the resources.
+
+```shell
+make local-awscdk-deploy
+```
+
+### Run test
+This will deploy the resources.
+
+```shell
+make local-awscdk-test
+```
+
