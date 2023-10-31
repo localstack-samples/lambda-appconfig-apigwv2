@@ -8,6 +8,13 @@ import path from "path"
 
 const app = new cdk.App()
 
+let lambdaDistPath = path.resolve("../../src/lambda-hello-name/dist")
+// If HOST_PROJECT_PATH is set, we're running in the GDC, use the host path to Lambda
+// distribution for hot reloading configuration
+if(process.env.HOST_PROJECT_PATH) {
+    lambdaDistPath = process.env.HOST_PROJECT_PATH + "/src/lambda-hello-name/dist"
+}
+
 // AWS CDK App Stack on LocalStack
 new AwscdkStack(app, 'LambdaAppConfig-local', {
     /* If you don't specify 'env', this stack will be environment-agnostic.
@@ -25,7 +32,7 @@ new AwscdkStack(app, 'LambdaAppConfig-local', {
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
     isLocal: true,
     environment: 'local',
-    lambdaDistPath: path.resolve("../../src/lambda-hello-name/dist"),
+    lambdaDistPath: lambdaDistPath,
     handler: "index.handler",
     runtime: Runtime.NODEJS_18_X,
     listBucketName: process.env.LIST_BUCKET_NAME || 'lambda-work',

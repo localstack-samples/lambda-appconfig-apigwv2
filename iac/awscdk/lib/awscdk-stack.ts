@@ -47,7 +47,13 @@ export class AwscdkStack extends cdk.Stack {
             arch = Architecture.X86_64
         }
         // Lambda Source Code
-        this.lambdaCode = new AssetCode(`../../src/lambda-hello-name/dist`)
+        // If running on LocalStack, setup Hot Reloading with a fake bucked named hot-reload
+        if (props.isLocal) {
+            const lambdaBucket = s3.Bucket.fromBucketName(this, "HotReloadingBucket", "hot-reload")
+            this.lambdaCode = Code.fromBucket(lambdaBucket, props.lambdaDistPath)
+        } else {
+            this.lambdaCode = new AssetCode(`../../src/lambda-hello-name/dist`)
+        }
 
         const lambdaAppConfig = new SimpleConfiguration(this,
             'myconfig', {
