@@ -47,13 +47,7 @@ export class AwscdkStack extends cdk.Stack {
             arch = Architecture.X86_64
         }
         // Lambda Source Code
-        // If running on LocalStack, setup Hot Reloading with a fake bucked named hot-reload
-        if (props.isLocal) {
-            const lambdaBucket = s3.Bucket.fromBucketName(this, "HotReloadingBucket", "hot-reload")
-            this.lambdaCode = Code.fromBucket(lambdaBucket, props.lambdaDistPath)
-        } else {
-            this.lambdaCode = new AssetCode(`../../src/lambda-hello-name/dist`)
-        }
+        this.lambdaCode = new AssetCode(`../../src/lambda-hello-name/dist`)
 
         const lambdaAppConfig = new SimpleConfiguration(this,
             'myconfig', {
@@ -65,7 +59,7 @@ export class AwscdkStack extends cdk.Stack {
                 }, region: props.region
             })
 
-        // Create a bucket for something future purpose
+        // Create a bucket for some future purpose
         this.bucket = new s3.Bucket(this, 'lambdawork', {
             enforceSSL: false,
             removalPolicy: RemovalPolicy.DESTROY,
@@ -130,162 +124,6 @@ export class AwscdkStack extends cdk.Stack {
             value: this.httpApi.apiEndpoint,
             exportName: 'HttpApiEndpoint',
         })
-        // Create REST API with Proxy to S3
-        const apiGateway = this.createAPIGateway()
-        const executeRole = this.createExecutionRole(this.bucket)
-        this.bucket.grantReadWrite(executeRole)
-        const s3ListBucketIntegration = this.createS3ListBucketIntegration(this.bucket, executeRole)
-        const s3ListIntegration = this.createS3ListIntegration(this.bucket, executeRole)
-        const s3BucketIntegration = this.createS3BucketIntegration(this.bucket, executeRole)
-        const s3Integration = this.createS3Integration(this.bucket, executeRole)
-        this.addAssetsEndpoint(apiGateway, s3BucketIntegration, s3Integration, s3ListIntegration, s3ListBucketIntegration)
-        // Output the RestApiUrl
-        new cdk.CfnOutput(this, 'RestApiEndpoint', {
-            value: apiGateway.url,
-            exportName: 'RestApiEndpoint',
-        })
-    }
-
-    private createAPIGateway() {
-        return new ApiGateway.RestApi(this, "assets-api", {
-            restApiName: "Static assets provider",
-            description: "Serves assets from the S3 bucket.",
-            binaryMediaTypes: ["*/*"],
-        })
-    }
-
-    private createExecutionRole(bucket: S3.IBucket) {
-        const executeRole = new Iam.Role(this, "api-gateway-s3-assume-tole", {
-            assumedBy: new Iam.ServicePrincipal("apigateway.amazonaws.com"),
-            roleName: "API-Gateway-S3-Integration-Role",
-        })
-
-        executeRole.addToPolicy(
-            new Iam.PolicyStatement({
-                resources: ["*"],
-                actions: ["s3:Get*",
-                    "s3:List*"],
-            })
-        )
-
-        return executeRole
-    }
-
-
-    private createS3ListIntegration(assetsBucket: S3.IBucket, executeRole: Iam.Role) {
-        return new ApiGateway.AwsIntegration({
-            service: "s3",
-            integrationHttpMethod: "GET",
-            path: `/`,
-            options: {
-                credentialsRole: executeRole,
-                passthroughBehavior: ApiGateway.PassthroughBehavior.WHEN_NO_TEMPLATES,
-                integrationResponses: [
-                    {
-                        statusCode: "200",
-                        responseParameters: {
-                            "method.response.header.Content-Type": "integration.response.header.Content-Type",
-                        },
-                    },
-                ],
-            }
-        })
-    }
-
-    private createS3BucketIntegration(assetsBucket: S3.IBucket, executeRole: Iam.Role) {
-        return new ApiGateway.AwsIntegration({
-            service: "s3",
-            integrationHttpMethod: "GET",
-            path: `${assetsBucket.bucketName}/{folder}/{key}`,
-            options: {
-                credentialsRole: executeRole,
-                passthroughBehavior: ApiGateway.PassthroughBehavior.WHEN_NO_TEMPLATES,
-                integrationResponses: [
-                    {
-                        statusCode: "200",
-                        responseParameters: {
-                            "method.response.header.Content-Type": "integration.response.header.Content-Type",
-                        },
-                    },
-                ],
-
-                requestParameters: {
-                    "integration.request.path.folder": "method.request.path.folder",
-                    "integration.request.path.key": "method.request.path.key",
-                },
-            },
-        })
-    }
-
-    private createS3Integration(assetsBucket: S3.IBucket, executeRole: Iam.Role) {
-        return new ApiGateway.AwsIntegration({
-            service: "s3",
-            integrationHttpMethod: "GET",
-            path: '{bucket}/{object}',
-            options: {
-                credentialsRole: executeRole,
-                passthroughBehavior: ApiGateway.PassthroughBehavior.WHEN_NO_TEMPLATES,
-                requestParameters: {
-                    'integration.request.path.bucket': 'method.request.path.folder',
-                    'integration.request.path.object': 'method.request.path.item',
-                },
-                integrationResponses: [
-                    {
-                        statusCode: "200",
-                        responseParameters: {
-                            "method.response.header.Content-Type": "integration.response.header.Content-Type",
-                        },
-                    },
-                ],
-            },
-        })
-    }
-
-    private createS3ListBucketIntegration(assetsBucket: S3.IBucket, executeRole: Iam.Role) {
-        return new ApiGateway.AwsIntegration({
-            service: "s3",
-            // region: "us-east-1",
-            path: '{bucket}',
-            integrationHttpMethod: "GET",
-            options: {
-                credentialsRole: executeRole,
-                passthroughBehavior: ApiGateway.PassthroughBehavior.WHEN_NO_TEMPLATES,
-                requestParameters: {'integration.request.path.bucket': 'method.request.path.folder'},
-                integrationResponses: [{
-                    statusCode: '200',
-                    responseParameters: {'method.response.header.Content-Type': 'integration.response.header.Content-Type'}
-                }]
-            }
-        })
-    }
-
-    private addAssetsEndpoint(
-        apiGateway: ApiGateway.RestApi,
-        s3BucketIntegration: ApiGateway.AwsIntegration,
-        s3Integration: ApiGateway.AwsIntegration,
-        s3ListIntegration: ApiGateway.AwsIntegration,
-        listBucketIntegration: ApiGateway.AwsIntegration
-    ) {
-        apiGateway.root
-            .addResource("assets")
-            .addResource("{folder}")
-            .addResource("{key}")
-            .addMethod("GET", s3BucketIntegration, {
-                authorizationType: AuthorizationType.NONE,
-                methodResponses: [
-                    {
-                        statusCode: "200",
-                        responseParameters: {
-                            "method.response.header.Content-Type": true,
-                        },
-                    },
-                ],
-                requestParameters: {
-                    "method.request.path.folder": true,
-                    "method.request.path.key": true,
-                    "method.request.header.Content-Type": true,
-                },
-            })
     }
 
 }

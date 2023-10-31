@@ -15,7 +15,7 @@ export SBX_ACCOUNT_CONFIG?=devops-tooling/accounts/my-sb.json
 export ENFORCE_IAM?=1
 export PERSIST_ALL?=false
 
-.PHONY: clean update-deps delete-zips iac-shared local-top-level
+.PHONY: clean update-deps delete-zips iac-shared local-top-level local-awscdk-output
 
 PKG_SUB_DIRS := $(dir $(shell find . -type d -name node_modules -prune -o -type d -name "venv*" -prune -o -type f -name package.json -print))
 
