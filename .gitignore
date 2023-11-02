@@ -103,3 +103,4 @@ cdktf-output.json
 hello.txt
 
 devops-tooling/volume/
+iac/awscdk/stack-outputs.json

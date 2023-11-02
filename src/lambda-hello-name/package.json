@@ -12,6 +12,8 @@
     "@types/node": "^20.8.4"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.438.0",
+    "@aws-sdk/lib-dynamodb": "^3.438.0",
     "typescript": "^5.2.2"
   }
 }

@@ -65,4 +65,6 @@ test-lambda:
 		--handler testlambda.handler --timeout 30 --zip-file fileb:///tmp/testlambda.zip \
 		--layers arn:aws:lambda:us-east-1:027255383542:layer:AWS-AppConfig-Extension-Arm64:46
 
-
+restart-ls:
+	~/bin-extra/ls/stop-ls.sh
+	~/bin-extra/ls/start-ls.sh

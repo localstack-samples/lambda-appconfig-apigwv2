@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib'
 import {aws_s3 as s3, Duration, RemovalPolicy} from 'aws-cdk-lib'
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import {Architecture, AssetCode, Code, Function, Runtime, LayerVersion} from "aws-cdk-lib/aws-lambda"
 import {Construct} from 'constructs'
 import * as Iam from "aws-cdk-lib/aws-iam"
@@ -55,6 +56,16 @@ export class AwscdkStack extends cdk.Stack {
             this.lambdaCode = new AssetCode(`../../src/lambda-hello-name/dist`)
         }
 
+        // create a table
+        const ddbTable = new dynamodb.Table(this, `mytable-${props.environment}`, {
+            tableName: `mytable-${props.environment}`,
+            partitionKey: {
+                name: 'id',
+                type: dynamodb.AttributeType.STRING,
+            },
+        })
+
+        // Create AppConfig resource
         const lambdaAppConfig = new SimpleConfiguration(this,
             'myconfig', {
                 configurationName: 'theconfig',
@@ -103,6 +114,7 @@ export class AwscdkStack extends cdk.Stack {
             timeout: Duration.seconds(10),
             environment: {
                 BUCKET: this.bucket.bucketName,
+                DDB_TABLE_NAME: ddbTable.tableName,
                 AWS_APPCONFIG_EXTENSION_PREFETCH_LIST: lambdaAppConfig.deploymentUri,
                 // AWS_APPCONFIG_EXTENSION_PROXY_URL: 'http://host.docker.internal:4566'
                 // AWS_APPCONFIG_EXTENSION_PROXY_URL: 'http://localhost:2772'
@@ -110,6 +122,9 @@ export class AwscdkStack extends cdk.Stack {
             layers: [appConfigLambdaLayer],
             initialPolicy: [lambdaPolicy, lambdaPolicyAppConfig],
         })
+        // Allow Lambda to write to this DDB table
+        ddbTable.grantWriteData(this.lambdaFunction)
+
 
         // HttpAPI Lambda Integration for the above Lambda
         const nameIntegration =
@@ -125,6 +140,11 @@ export class AwscdkStack extends cdk.Stack {
             integration: nameIntegration,
         })
 
+        // Output the DDB Table Name
+        new cdk.CfnOutput(this, 'ddbTableName', {
+            value: ddbTable.tableName,
+            exportName: 'ddbTableName',
+        })
         // Output the HttpApiEndpoint
         new cdk.CfnOutput(this, 'HttpApiEndpoint', {
             value: this.httpApi.apiEndpoint,
