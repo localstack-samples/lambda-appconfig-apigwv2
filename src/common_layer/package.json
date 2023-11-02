@@ -1,0 +1,7 @@
+{
+  "name": "layer",
+  "dependencies": {
+    "@types/uuid": "^9.0.4",
+    "uuid": "^9.0.1"
+  }
+}
