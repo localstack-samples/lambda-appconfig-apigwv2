@@ -6,8 +6,6 @@ PROJECT_MODULE_NAME = ./src/lambda-hello-name/src/
 -include ./devops-tooling/envs.makefile
 -include ./devops-tooling/nonenv.makefile
 -include ./devops-tooling/sandboxenv.makefile
--include ./devops-tooling/pulumi.makefile
--include ./devops-tooling/cdktf.makefile
 -include ./devops-tooling/awscdk.makefile
 
 # Some defaults

@@ -25,12 +25,6 @@ Follow instructions in the READMEs.
 
 Follow the prerequisites in the main [README](../README.md).
 
-1. Install `cdklocal`. See [LocalStack CDK CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cdk/)
-
-```shell
-npm install -g aws-cdk-local aws-cdk
-```
-
 # Deploy
 
 ## Start LocalStack

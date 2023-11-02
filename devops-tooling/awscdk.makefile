@@ -4,12 +4,12 @@ awscdkinstall:
 awscdkbootstrap: iac-shared awscdkinstall build
 	cd $(STACK_DIR) && $(CDK_CMD) bootstrap
 awscdkdeploy: iac-shared
-	cd $(STACK_DIR) && $(CDK_CMD) deploy $(TFSTACK_NAME) --outputs-file stack-outputs.json
+	cd $(STACK_DIR) && $(CDK_CMD) deploy $(TFSTACK_NAME) --outputs-file stack-outputs-$(STACK_SUFFIX).json
 awscdkdestroy: iac-shared
 	cd $(STACK_DIR) && $(CDK_CMD) destroy $(TFSTACK_NAME)
 awscdkoutput:
-	jq '{ apigwUrl: ."LambdaAppConfig-local".HttpApiEndpoint, ddbTableName: ."LambdaAppConfig-local".ddbTableName }' \
-	iac/awscdk/stack-outputs.json
+	jq '{ apigwUrl: ."LambdaAppConfig-$(STACK_SUFFIX)".HttpApiEndpoint, ddbTableName: ."LambdaAppConfig-$(STACK_SUFFIX)".ddbTableName }' \
+	iac/awscdk/stack-outputs-$(STACK_SUFFIX).json
 
 
 # LocalStack target groups
@@ -23,13 +23,18 @@ local-awscdk-deploy: build awscdkdeploy
 local-awscdk-destroy: awscdkdestroy
 local-awscdk-output: awscdkoutput
 
-local-awscdk-test:
+local-awscdk-test-output:
 	@make -s local-awscdk-output > auto_tests/iac-output.json;
+
+local-awscdk-test:
+	@make -s local-awscdk-test-output
 	make test
 
+local-get-invoke-url:
+	@jq '."LambdaAppConfig-$(STACK_SUFFIX)".HttpApiEndpoint' iac/awscdk/stack-outputs-$(STACK_SUFFIX).json
+
 local-awscdk-invoke:
-	@APIGW=$$(make local-awscdk-output | jq -r '.apigwUrl') && \
-	curl "http://$${APIGW}";
+	curl $(shell make local-get-invoke-url)
 
 local-awscdk-invoke-loop:
 	@APIGW=$$(make local-awscdk-output | jq -r '.apigwUrl') && \
@@ -48,10 +53,8 @@ sbx-awscdk-deploy: build awscdkdeploy
 sbx-awscdk-destroy: awscdkdestroy
 sbx-awscdk-output: awscdkoutput
 
+sbx-awscdk-get-invoke-url:
+	@jq '."LambdaAppConfig-$(STACK_SUFFIX)".HttpApiEndpoint' iac/awscdk/stack-outputs-$(STACK_SUFFIX).json
+
 sbx-awscdk-invoke:
-	@APIGW=$$(aws cloudformation describe-stacks \
-  --stack-name LsMultiEnvApp-sbx \
-  --query "Stacks[0].Outputs[?ExportName=='HttpApiEndpoint'].OutputValue" \
-  --output text) && \
-	curl "$${APIGW}";
-	@rm -f awscdk-output.json
+	curl $(shell make sbx-awscdk-get-invoke-url)
