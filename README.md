@@ -19,7 +19,7 @@ here [AWS Lambda AppConfig docs](https://docs.aws.amazon.com/appconfig/latest/us
 ## LocalStack Requirements
 
 - LocalStack Pro subscription
-- LocalStack Extension for Lambda+AppConfig
+- LocalStack Extension for Lambda+AppConfig. Contact LocalStack for details.
 
 ## Tooling Requirements with GDC
 
@@ -27,15 +27,13 @@ here [AWS Lambda AppConfig docs](https://docs.aws.amazon.com/appconfig/latest/us
 - Install/clone the GDC (Generic Dev Container) [here](https://github.com/devxpod/GDC). We'll refer to this cloned
   directory as `GDC_HOME`.
 
-## Tooling Requirements without GDC
-
-- Docker or DockerDesktop
-- Make
-- Python 3.11+
-- NVM (node version manager). Use version 18.
-- ... ...
-
 ## Setup with GDC
+
+Set `GDC_HOME`
+
+```shell
+export GDC_HOME=<path to clone GDC repo>
+```
 
 ### Configure LocalStack Auth
 
@@ -68,21 +66,21 @@ export LOCALSTACK_VOLUME_DIR=<path to project>/lambda-appconfig-apigwv2/ls_volum
 localstack extensions -v install file://<path to extension>/localstack-extension-lambda-appconfig-0.1.0.tar.gz
 ```
 
-Restart the GDC so LocalStack will load the LocalStack Extension on startup.
+### Get into GDC shell
 
-# Deploy
-
-## Open the GDC (Generic Dev Container)
+Unless otherwise stated, do all commands from within a GDC shell.
 
 ```shell
 docker exec -it lappc-dev-1 bash -l
 ```
 
-### Install `cdklocal`. See [LocalStack CDK CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cdk/)
+Restart LocalStack so it will load the LocalStack Extension on startup.
 
 ```shell
-npm install -g aws-cdk-local aws-cdk
+make restart-ls
 ```
+
+# Deploy to LocalStack
 
 ## Deploy with AWS CDK to LocalStack
 
@@ -102,11 +100,74 @@ This will deploy the resources.
 make local-awscdk-deploy
 ```
 
+### Curl APIGW Url
+
+```shell
+make local-awscdk-invoke
+```
+
 ### Run test
 
-This will deploy the resources.
+This will run the integration test asserting the Lambda AppConfig and DynamoDB integrations work.
 
 ```shell
 make local-awscdk-test
 ```
 
+### Cleanup and restart LocalStack
+
+```shell
+make local-awscdk-clean restart-ls
+```
+
+# Deploy to AWS
+
+We use the same IaC pipelines to deploy to AWS! This is a very important point that LocalStack enables teams
+to test their IaC pipelines locally before ever deploying them to a live AWS environment.
+
+Do this from your host machine. Not inside the GDC.
+
+Install AWS `cdk`
+
+```shell
+npm install -g aws-cdk
+```
+
+## Set Live AWS Credentials
+
+However you set your credentials in your terminal, do it now.
+
+### Deploy the AWS CDK IaC App Stack
+
+Bootstrap the account. Only need to do this once per account/region.
+
+```shell
+make sbx-awscdk-bootstrap
+```
+
+This will deploy the resources.
+
+```shell
+make sbx-awscdk-deploy
+```
+
+### Invoke the Lambda in AWS
+
+```shell
+make sbx-awscdk-invoke
+```
+
+### Destroy the CDK Stack in AWS
+
+```shell
+make sbx-awscdk-destroy
+```
+
+# LocalStack DevX
+
+With LocalStack, you can iterate quickly with an Amazing DevX.
+The deployment of this solution to AWS takes **11 minutes**. The deployment of this solution
+to LocalStack takes **34 seconds**.
+
+![AWS Deployment Time](./docs/img/aws-deploy-timing.png)
+![LocalStack Deployment Time](./docs/img/localstack-deploy-timing.png)

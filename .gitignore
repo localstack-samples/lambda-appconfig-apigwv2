@@ -104,3 +104,4 @@ hello.txt
 
 devops-tooling/volume/
 iac/awscdk/stack-outputs.json
+iac/awscdk/stack-outputs-*.json
